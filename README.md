@@ -1,9 +1,14 @@
 # Features
 -Supports all the prayer times calculation methods available in Prayer Times API.
+
 -Has a tray icon to handle showing, hiding and closing of the app.
+
 -Caches a full month of prayers times locally to work offline.
+
 -Has a collection of famous adhan sounds pre-included.
+
 -Supports adding variable number of adhan sounds.
+
 -Very simple to use.
 
 
