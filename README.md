@@ -15,6 +15,6 @@ Just place the .mp3 file of the adhan in the "Resources/Adhan Sounds" folder.
 
 > **_NOTE:_** creating a virual environment is very important here becuase in the building process, all the packages in the python enviroment get packed inside the output folder, we can add exception per package and also write code to delete spacific files for us, but we need the minimum amount of packages in the environment.
 
-> **_NOTE:_** The latest version of playsound, v1.3.0, is bugged, but v1.2.2 is still working perfectly, so is essential to install that specific version.
+> **_NOTE:_** The command I included forces a specific version of playsound to be installed, this is because the latest version of playsound as of now, v1.3.0, is bugged, but v1.2.2 is still working perfectly, so is essential to install that specific version.
 
 2- Open the cmd and make the project's folder is your current working directory, then run Build.bat and it will handle the building and the cleaning of unused python base libraries and parts of pyside6 package automatically.
