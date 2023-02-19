@@ -1,3 +1,5 @@
+![Screenshot_4](https://user-images.githubusercontent.com/16827679/219981995-b676bb95-2d4b-4a25-9999-f09f3dc2dbf1.png)
+
 # Features
 - Supports all the prayer times calculation methods available in Prayer Times API.
 - Has a tray icon to handle showing, hiding and closing of the app.
