@@ -2,9 +2,9 @@ from Modules.Props import CustomWindowFrame, PrayerTimesMonth, clear_layout, Wor
 from PySide6.QtWidgets import QWidget, QApplication, QVBoxLayout, QFormLayout, QLabel, QComboBox, QGroupBox, QCheckBox
 from PySide6.QtCore import QSize, Qt, QTimer, Slot, QThreadPool
 from PySide6.QtGui import QPalette, QColor, QIcon
+from datetime import datetime, timedelta
 from win10toast import ToastNotifier
 from playsound import playsound
-from datetime import datetime
 from PySide6 import QtGui
 import win32com.client
 import win32com
@@ -202,7 +202,7 @@ class PyAdhan(QWidget):
         else:
 
             if current_time.hour < 24:
-                delta = prayer_time - current_time.replace(hour=24 - current_time.hour)
+                delta = prayer_time - current_time + timedelta(days=1)
 
             else:
                 delta = current_time - prayer_time
