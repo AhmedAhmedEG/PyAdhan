@@ -1,231 +1,19 @@
-from PySide6.QtWidgets import QWidget, QApplication, QVBoxLayout, QFormLayout, QLabel, QGridLayout, QPushButton, QFrame, QComboBox, QGroupBox, QSystemTrayIcon, \
-                              QMenu
-from PySide6.QtCore import QSize, Qt, QTimer, Slot, Signal, QObject, QRunnable, QThreadPool
-from PySide6.QtGui import QGuiApplication, QPalette, QColor, QIcon
+from Modules.Props import CustomWindowFrame, PrayerTimesMonth, clear_layout, Worker, update_config, read_config, SystemTrayIcon, app_version
+from PySide6.QtWidgets import QWidget, QApplication, QVBoxLayout, QFormLayout, QLabel, QComboBox, QGroupBox, QCheckBox
+from PySide6.QtCore import QSize, Qt, QTimer, Slot, QThreadPool
+from PySide6.QtGui import QPalette, QColor, QIcon
+from win10toast import ToastNotifier
 from playsound import playsound
 from datetime import datetime
 from PySide6 import QtGui
-import configparser
+import win32com.client
+import win32com
 import requests
+import getpass
 import random
 import pickle
 import sys
 import os
-
-
-def read_config():
-    config = configparser.ConfigParser()
-    config.optionxform = str
-
-    if not os.path.exists('config.ini'):
-        config['Settings'] = {'Adhan Sound': 0,
-                              'Calculation Method': 5}
-
-        with open('config.ini', 'w') as configfile:
-            config.write(configfile)
-
-    config.read('config.ini')
-    return config
-
-
-def update_config(c):
-
-    with open('config.ini', 'w') as f:
-        c.write(f)
-
-
-def clear_layout(layout):
-
-    while layout.count():
-        child = layout.takeAt(0)
-
-        if child.widget():
-            child.widget().deleteLater()
-
-
-config = read_config()
-window_size = QSize(420, 440)
-
-
-class Worker(QObject, QRunnable):
-    start = Signal(int)
-    progress = Signal(int)
-    operation = Signal(str)
-    result = Signal(object)
-    finished = Signal()
-    close = Signal()
-
-    def __init__(self, func=None, *args, **kwargs):
-        QObject.__init__(self)
-        QRunnable.__init__(self)
-
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-
-    @Slot()
-    def run(self):
-        self.func(*self.args, **self.kwargs)
-
-    def set_func(self, func):
-        self.func = func
-
-
-class CustomWindowFrame(QWidget):
-
-    def __init__(self, title, closable=True, maximizable=True, minimizable=True, movable=True):
-        super().__init__()
-        self.setFixedHeight(30)
-
-        self.movable = movable
-
-        self.mouse_offset = None
-        self.grabbed = False
-
-        # Structure
-        self.title_body = QGridLayout()
-        self.title_body.setContentsMargins(6, 0, 6, 0)
-
-        self.title_container = QWidget()
-        self.title_container.setFixedHeight(15)
-
-        self.body = QVBoxLayout()
-        self.body.setContentsMargins(0, 6, 0, 2)
-
-        # Components
-        self.title = QLabel(title)
-        self.title.setStyleSheet('font-size: 12px')
-
-        self.minimize_btn = QPushButton('–')
-        self.minimize_btn.setFixedWidth(12)
-        self.minimize_btn.setFlat(True)
-
-        self.maximize_btn = QPushButton('❒')
-        self.maximize_btn.setFixedWidth(12)
-        self.maximize_btn.setFlat(True)
-
-        self.exit_btn = QPushButton('X')
-        self.exit_btn.setFixedWidth(12)
-        self.exit_btn.setFlat(True)
-
-        self.separator = QFrame()
-        self.separator.setFrameShape(QFrame.Shape.HLine)
-        self.separator.setFrameShadow(QFrame.Shadow.Sunken)
-
-        # Functionality
-        self.minimize_btn.clicked.connect(self.minimize)
-        self.maximize_btn.clicked.connect(self.maximize)
-        self.exit_btn.clicked.connect(self.exit)
-
-        # Assembly
-        self.title_body.addWidget(self.title, 0, 0, alignment=Qt.AlignLeft)
-
-        if minimizable:
-            self.title_body.addWidget(self.minimize_btn, 0, 2, alignment=Qt.AlignRight)
-
-        if maximizable:
-            self.title_body.addWidget(self.maximize_btn, 0, 3, alignment=Qt.AlignRight)
-
-        if closable:
-            self.title_body.addWidget(self.exit_btn, 0, 4, alignment=Qt.AlignRight)
-
-        self.title_body.setColumnStretch(1, 1)
-        self.title_container.setLayout(self.title_body)
-
-        self.body.addWidget(self.title_container)
-        self.body.addWidget(self.separator)
-
-        self.setLayout(self.body)
-
-    def mousePressEvent(self, event):
-        super().mousePressEvent(event)
-
-        if not self.movable:
-            return
-
-        self.mouse_offset = event.pos()
-
-    def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
-        super().mouseReleaseEvent(event)
-
-        if not self.movable:
-            return
-
-        self.grabbed = False
-
-    def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
-        super().mouseMoveEvent(event)
-
-        if not self.movable:
-            return
-
-        if not self.grabbed and event.y() < self.height() and self.mouse_offset.y() < self.height():
-            self.grabbed = True
-
-        if self.grabbed:
-            x, y = event.globalX(), event.globalY()
-            self.parent().move(x - self.mouse_offset.x(), y - self.mouse_offset.y())
-
-    def minimize(self):
-        self.parent().hide()
-
-    def maximize(self):
-        mw, mh = QGuiApplication.screens()[0].size().toTuple()
-
-        if self.parent().size() == QSize(mw - 1, mh - 1):
-            self.parent().resize(window_size)
-            self.parent().move(QGuiApplication.screens()[0].geometry().center() - self.parent().frameGeometry().center())
-
-        else:
-            self.parent().resize(QSize(mw - 1, mh - 1))
-            self.parent().move(0, 0)
-
-    def exit(self):
-        self.parent().close()
-
-
-class SystemTrayIcon(QSystemTrayIcon):
-
-    def __init__(self, icon, parent=None):
-        super().__init__(icon, parent)
-        menu = QMenu(parent)
-
-        menu.addAction("Exit")
-        menu.triggered.connect(parent.close)
-
-        self.setContextMenu(menu)
-        self.activated.connect(self.activate)
-
-    def activate(self, reason):
-
-        if reason != QSystemTrayIcon.ActivationReason.Trigger:
-
-            if self.parent().isHidden():
-                self.parent().show()
-
-            else:
-                self.parent().hide()
-
-
-class PrayerTimesMonth:
-
-    def __init__(self, data):
-        self.data = data['data']
-        self.month = datetime.now().month
-
-    def get_prayer_times(self, day):
-        prayer_times = self.data[day - 1]['timings']
-        prayer_times = [prayer_times['Fajr'].split(' ')[0],
-                        prayer_times['Dhuhr'].split(' ')[0],
-                        prayer_times['Asr'].split(' ')[0],
-                        prayer_times['Maghrib'].split(' ')[0],
-                        prayer_times['Isha'].split(' ')[0]]
-
-        for i, pt in enumerate(prayer_times):
-            dt = datetime.strptime(pt, '%H:%M')
-            prayer_times[i] = dt.strftime("%I:%M %p")
-
-        return prayer_times
 
 
 class PyAdhan(QWidget):
@@ -234,6 +22,7 @@ class PyAdhan(QWidget):
         super().__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon('Resources/Icon.ico'))
+        self.prayer_names = {0: 'Fajr', 1: 'Dhuhr', 2: 'Asr', 3: 'Maghrib', 4: 'Isha'}
         self.prayer_times = None
 
         # Structure
@@ -252,7 +41,7 @@ class PyAdhan(QWidget):
         self.body.setContentsMargins(0, 0, 0, 0)
 
         # Components
-        self.window_frame = CustomWindowFrame('PyAdhan', maximizable=False)
+        self.window_frame = CustomWindowFrame('PyAdhanGUI v' + app_version, maximizable=False)
 
         self.counter_lb = QLabel()
         self.counter_lb.setStyleSheet('font-size: 60px')
@@ -277,6 +66,10 @@ class PyAdhan(QWidget):
                                   'Spiritual Administration of Muslims of Russia'])
         self.method_cbb.setCurrentIndex(int(config['Settings']['Calculation Method']))
 
+        self.startup_cb = QCheckBox()
+        self.startup_cb.setFixedSize(QSize(25, 25))
+        self.startup_cb.setChecked(int(config['Settings']['Add To Startup']))
+
         self.counter_timer = QTimer()
         self.counter_timer.start(1000)
 
@@ -285,9 +78,15 @@ class PyAdhan(QWidget):
         # Functionality
         self.counter_timer.timeout.connect(self.checker)
         self.adhan_cbb.currentIndexChanged.connect(lambda i: config.set('Settings', 'Adhan Sound', str(i)))
+        self.adhan_cbb.currentIndexChanged.connect(lambda: update_config(config))
 
         self.method_cbb.currentIndexChanged.connect(lambda i: config.set('Settings', 'Calculation Method', str(i)))
+        self.method_cbb.currentIndexChanged.connect(lambda: update_config(config))
         self.method_cbb.currentIndexChanged.connect(self.update_prayer_times)
+
+        self.startup_cb.stateChanged.connect(lambda: config.set('Settings', 'Add To Startup', str(int(self.startup_cb.isChecked()))))
+        self.startup_cb.stateChanged.connect(lambda: update_config(config))
+        self.startup_cb.stateChanged.connect(self.switch_startup)
 
         # Assembly
         self.body.addWidget(self.window_frame)
@@ -298,6 +97,7 @@ class PyAdhan(QWidget):
 
         self.settings_body.addRow('Adhan Sound', self.adhan_cbb)
         self.settings_body.addRow('Calculation Method', self.method_cbb)
+        self.settings_body.addRow('Add To Startup', self.startup_cb)
 
         self.settings_container.setLayout(self.settings_body)
         self.body.addWidget(self.settings_container, alignment=Qt.AlignCenter)
@@ -332,12 +132,13 @@ class PyAdhan(QWidget):
         self.prayer_times = prayer_times_month.get_prayer_times(datetime.now().day)
 
         clear_layout(self.prayer_times_body)
-        self.prayer_times_body.addRow('Fajr', QLabel(self.prayer_times[0]))
-        self.prayer_times_body.addRow('Dhuhr', QLabel(self.prayer_times[1]))
-        self.prayer_times_body.addRow('Asr', QLabel(self.prayer_times[2]))
-        self.prayer_times_body.addRow('Maghrib', QLabel(self.prayer_times[3]))
-        self.prayer_times_body.addRow('Isha', QLabel(self.prayer_times[4]))
+        self.prayer_times_body.addRow(self.prayer_names[0], QLabel(self.prayer_times[0]))
+        self.prayer_times_body.addRow(self.prayer_names[1], QLabel(self.prayer_times[1]))
+        self.prayer_times_body.addRow(self.prayer_names[2], QLabel(self.prayer_times[2]))
+        self.prayer_times_body.addRow(self.prayer_names[3], QLabel(self.prayer_times[3]))
+        self.prayer_times_body.addRow(self.prayer_names[4], QLabel(self.prayer_times[4]))
 
+    @Slot()
     def update_prayer_times(self):
 
         if os.path.isfile('Resources/CurrentMonthPrayerTimes.pkl'):
@@ -346,6 +147,27 @@ class PyAdhan(QWidget):
         self.get_prayer_times_month()
         self.checker()
 
+    @Slot()
+    def switch_startup(self):
+
+        if not getattr(sys, "frozen", False):
+            return
+
+        path = f'C:/Users/{getpass.getuser()}/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/PyAdhanGUI.lnk'
+
+        if self.startup_cb.isChecked():
+            shell = win32com.client.Dispatch('WScript.Shell')
+
+            shortcut = shell.CreateShortCut(path)
+            shortcut.IconLocation = os.getcwd() + '/Resources/Icon.ico'
+            shortcut.Targetpath = os.getcwd() + '/PyAdhanGUI.exe'
+
+            shortcut.save()
+
+        else:
+            os.remove(path)
+
+    @Slot()
     def checker(self):
         current_time = datetime.now()
 
@@ -354,7 +176,7 @@ class PyAdhan(QWidget):
             prayer_time = datetime.strptime(self.prayer_times[i], '%I:%M %p')
             prayer_time = prayer_time.replace(year=current_time.year, month=current_time.month, day=current_time.day)
 
-            if (current_time.hour == prayer_time.hour) and (current_time.minute == prayer_time.minute) and (current_time.second == prayer_time.second):
+            if (current_time.hour, current_time.minute, current_time.second) == (prayer_time.hour, prayer_time.minute, prayer_time.second):
 
                 if self.adhan_cbb.currentText() == 'Random':
                     adhan_ind = random.choice(range(1, self.adhan_cbb.count()))
@@ -365,6 +187,7 @@ class PyAdhan(QWidget):
 
                 if not self.thread_pool.activeThreadCount():
                     self.thread_pool.start(Worker(playsound, 'Resources/Adhan Sounds/' + adhan_sound + '.mp3'))
+                    self.thread_pool.start(Worker(toast.show_toast, self.prayer_names[i], adhan_sound, duration=10, icon_path="Resources/Icon.ico"))
 
             if current_time.time() < prayer_time.time():
                 next_prayer = i
@@ -377,7 +200,12 @@ class PyAdhan(QWidget):
             delta = prayer_time - current_time
 
         else:
-            delta = current_time - prayer_time
+
+            if current_time.hour < 24:
+                delta = prayer_time - current_time.replace(hour=24 - current_time.hour)
+
+            else:
+                delta = current_time - prayer_time
 
         text = str(delta).split('.')[0]
         self.counter_lb.setText('-' + text)
@@ -399,6 +227,13 @@ class PyAdhan(QWidget):
 
 
 if '__main__' in __name__:
+
+    if getattr(sys, "frozen", False):
+        os.chdir(os.path.dirname(sys.executable))
+
+    toast = ToastNotifier()
+    config = read_config()
+
     palette = QPalette()
     palette.setColor(QPalette.ColorRole.Window, QColor("#353535"))
     palette.setColor(QPalette.ColorRole.Base, QColor("#2a2a2a"))
@@ -411,7 +246,7 @@ if '__main__' in __name__:
                                  QWidget:!enabled {color: #808080}''')
 
     window = PyAdhan()
-    window.resize(window_size)
+    window.resize(QSize(420, 510))
     window.show()
 
     tray_icon = SystemTrayIcon(QtGui.QIcon("Resources/Icon.ico"), window)
