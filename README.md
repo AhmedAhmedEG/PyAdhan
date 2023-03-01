@@ -1,7 +1,7 @@
 # Description
 
 <p align="center">
-<img src="https://user-images.githubusercontent.com/16827679/219981995-b676bb95-2d4b-4a25-9999-f09f3dc2dbf1.png">
+<img src="https://user-images.githubusercontent.com/16827679/222012723-7b9aa448-ddc6-42c4-a1d8-2207d39bee39.png">
 </p>
 
 
@@ -13,7 +13,9 @@ A GUI-based desktop app for prayer calling, made with python using pyside6 packa
 - Caches a full month of prayers times locally to work offline.
 - Has a collection of famous adhan sounds pre-included.
 - Supports adding variable number of adhan sounds.
-- Very simple to use.
+- Can be added to the startup with a single click.
+- Triggers toast notifications.
+- Very simple GUI.
 
 
 # How To Add Adhan Sounds
