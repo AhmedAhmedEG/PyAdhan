@@ -22,7 +22,7 @@ A GUI-based desktop app for prayer calling, made with python using pyside6 packa
 Just place the .mp3 file of the adhan in the "Resources/Adhan Sounds" folder.
 
 # How To Build From Code
-1- Make a python virtual environment inside the project's folder with the name "venv" and run this command in it's shell: ```pip install pyside6 requests pywin32 win10toast playsound==1.2.2```.
+1- Make a python virtual environment inside the project's folder with the name "venv" and run this command in it's shell: ```pip install pyside6 requests pywin32 win10toast cx_Freeze playsound==1.2.2```.
 
 > **_NOTE:_** creating a virual environment is very important here becuase in the building process, all the packages in the python enviroment get packed inside the output folder, we can add exception per package and also write code to delete spacific files for us, but we need the minimum amount of packages in the environment.
 
