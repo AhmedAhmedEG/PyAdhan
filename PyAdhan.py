@@ -145,7 +145,7 @@ class HomeTab(QWidget):
                                              adhan_sound,
                                              QIcon("Resources/Icon.png"))
 
-                self.player.setSource(f'file:Resources/Adhan Sounds/{adhan_sound}.mp3')
+                self.player.setSource(f'file:Resources/Adhan Callers/{adhan_sound}.mp3')
                 self.player.play()
 
             if current_time.time() < prayer_time.time():
