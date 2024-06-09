@@ -1,33 +1,29 @@
 # Description
 
 <p align="center">
-<img src="https://user-images.githubusercontent.com/16827679/222013159-8e22db2e-2610-4eb9-aeef-5ac78313fe92.png">
+<img src="https://github.com/AhmedAhmedEG/PyAdhan/assets/16827679/662ba3fb-d53f-4560-af08-cff943d55a14">
 </p>
 
-
-A GUI-based desktop app for prayer calling, made with python using pyside6 package, it uses Prayer Times API which supports all the prayer calculation methods, with many famous adhan sounds pre-included, and it supports adding even more sounds to it easily.
+A desktop app for prayer calling, fully written in Python, featuring a modern interface and accurate prayer time measurments using IP geolocation and Prayer Times API.
 
 # Features
-- Supports all the prayer times calculation methods available in Prayer Times API.
+- Supports automatic detection for the correct prayer timings based on user location.
 - Has a tray icon to handle showing, hiding and closing of the app.
 - Caches a full month of prayers times locally to work offline.
-- Has a collection of famous adhan sounds pre-included.
-- Supports adding variable number of adhan sounds.
+- Has a collection of famous adhan callers pre-included.
 - Can be added to the startup with a single click.
-- Triggers toast notifications.
-- Very simple GUI.
+- Supports adding extra adhan callers.
+- Provides toast notifications.
 
 
 # How To Add Adhan Sounds
-Just place the .mp3 file of the adhan in the "Resources/Adhan Sounds" folder.
+Just place the .mp3 file of the adhan in the "Resources/Adhan Callers" folder.
 
 # How To Build From Code
-1- Make a python virtual environment inside the project's folder with the name "venv" and run this command in it's shell: ```pip install pyside6 requests pywin32 win10toast cx_Freeze playsound==1.2.2```.
+1- Make a python virtual environment inside the project's folder with the name "venv" and run this command in it's shell: ```pip install pyside6 requests pywin32 public-ip cx_Freeze```.
 
 > **_NOTE:_** creating a virual environment is very important here becuase in the building process, all the packages in the python enviroment get packed inside the output folder, we can add exception per package and also write code to delete spacific files for us, but we need the minimum amount of packages in the environment.
 
-> **_NOTE:_** The command I included forces a specific version of playsound to be installed, this is because the latest version of playsound as of now, v1.3.0, is bugged, but v1.2.2 is still working perfectly, so is essential to install that specific version.
-
-2- Open the cmd and make the project's folder is your current working directory, then run Build.bat and it will handle the building and the size optimizing processes automatically.
+2- Open the cmd and set the project's folder as your current working directory, then run Build.bat and it will handle the building and the size optimizing processes automatically.
 
 > **_NOTE:_** The "Build.bat" file runs the "Builder.py" file in the virtual enviroment, "Builder.py" uses cx_Freeze package to build the application, it also exceludes unused base python libraries, and it also includes custom code that removes unused parts of pyside6 library that takes alot of extra space.
