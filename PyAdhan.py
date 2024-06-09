@@ -256,7 +256,7 @@ class SettingsTab(QWidget):
 
     @staticmethod
     def check_startup():
-        return Path(f'C:/Users/{getpass.getuser()}/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/PyAdhanGUI.lnk').is_file()
+        return Path(f'C:/Users/{getpass.getuser()}/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/PyAdhan.lnk').is_file()
 
     def switch_startup(self):
         config.update_settings('General', 'Add To Startup', int(self.startup_cb.isChecked()))
@@ -264,14 +264,14 @@ class SettingsTab(QWidget):
         if not getattr(sys, "frozen", False):
             return
 
-        path = f'C:/Users/{getpass.getuser()}/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/PyAdhanGUI.lnk'
+        path = f'C:/Users/{getpass.getuser()}/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/PyAdhan.lnk'
 
         if self.startup_cb.isChecked():
             shell = win32com.client.Dispatch('WScript.Shell')
 
             shortcut = shell.CreateShortCut(path)
             shortcut.IconLocation = os.getcwd() + '/Resources/Icon.ico'
-            shortcut.Targetpath = os.getcwd() + '/PyAdhanGUI.exe'
+            shortcut.Targetpath = os.getcwd() + '/PyAdhan.exe'
 
             shortcut.save()
 

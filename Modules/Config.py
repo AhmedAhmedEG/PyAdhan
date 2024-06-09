@@ -10,6 +10,12 @@ class Config:
     singleton_instance = None
 
     def __init__(self):
+
+        if getattr(sys, "frozen", False):
+            os.chdir(os.path.dirname(sys.executable))
+            #     sys.stderr = io.StringIO()
+            #     sys.stdout = io.StringIO()
+
         # self.APP_VERSION = next(open('./Changelog.txt', 'r', encoding='utf-8')).split(' ')[-1][1:-3]
         self.APP_VERSION = '2.8.10.5'
         self.ADHAN_CALLERS = ['Random'] + list(map(lambda a: Path(a).stem, os.listdir('Resources/Adhan Callers')))
@@ -33,11 +39,6 @@ class Config:
 
         self.settings = configparser.ConfigParser()
         self.settings.optionxform = str
-
-        if getattr(sys, "frozen", False):
-            os.chdir(os.path.dirname(sys.executable))
-            #     sys.stderr = io.StringIO()
-            #     sys.stdout = io.StringIO()
 
         if not os.path.exists('Settings.ini'):
             self.create_settings()
