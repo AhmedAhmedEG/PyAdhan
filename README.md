@@ -6,6 +6,8 @@
 
 A desktop app for prayer calling, fully written in Python, featuring a modern interface and accurate prayer time measurments using IP geolocation and Prayer Times API.
 
+If you love the project, any support from you will help to keep the project alive, you can support me on Paypal from here: https://paypal.me/AhmedAhmedEG?country.x=EG&locale.x=en_US
+
 # Features
 - Supports automatic detection for the correct prayer timings based on user location.
 - Has a tray icon to handle showing, hiding and closing of the app.
