@@ -17,7 +17,7 @@ class Config:
             #     sys.stdout = io.StringIO()
 
         # self.APP_VERSION = next(open('./Changelog.txt', 'r', encoding='utf-8')).split(' ')[-1][1:-3]
-        self.APP_VERSION = '2.8.10.5'
+        self.APP_VERSION = '2.10.10.6'
         self.ADHAN_CALLERS = ['Random'] + list(map(lambda a: Path(a).stem, os.listdir('Resources/Adhan Callers')))
         self.CALC_METHODS = ['Auto',
                              'University of Islamic Sciences, Karachi',
@@ -46,7 +46,8 @@ class Config:
             self.read_settings()
 
     def create_settings(self):
-        self.settings['General'] = {'Adhan Caller': '0',
+        self.settings['General'] = {'Audio Output': '',
+                                    'Adhan Caller': '0',
                                     'Calculation Method': '0',
                                     'Adhan Reminder': '0',
                                     'Always On Top': '1'}

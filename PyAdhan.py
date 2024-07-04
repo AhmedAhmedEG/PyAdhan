@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QWidget, QApplication, QVBoxLayout, QFormLayout, QLabel, QComboBox, QGroupBox, QCheckBox,
                                QSpinBox, QTabWidget)
-from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput, QMediaDevices
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QIcon
 
@@ -30,10 +30,10 @@ class HomeTab(QWidget):
         self.prayer_names = {0: 'Fajr', 1: 'Dhuhr', 2: 'Asr', 3: 'Maghrib', 4: 'Isha'}
         self.today_prayer_times = None
 
-        self.audio = QAudioOutput()
+        self.audio_output = QAudioOutput()
 
         self.player = QMediaPlayer()
-        self.player.setAudioOutput(self.audio)
+        self.player.setAudioOutput(self.audio_output)
 
         # Structure
         self.prayer_times_body = QFormLayout()
@@ -92,14 +92,14 @@ class HomeTab(QWidget):
             ip_geo_json = requests.get(f'http://ip-api.com/json/{public_ip.get()}').json()
 
             params = {'latitude': ip_geo_json['lat'],
-                      'longitude': ip_geo_json['lon'],
-                      'month': datetime.now().month,
-                      'year': datetime.now().year}
+                      'longitude': ip_geo_json['lon']}
 
             if int(config.settings['General']['Calculation Method']):
-                params['method'] = int(config.settings['General']['Calculation Method']) + 1
+                params['method'] = int(config.settings['General']['Calculation Method'])
 
-            adhan_json = requests.get('http://api.aladhan.com/v1/calendar', params=params).json()
+            adhan_json = requests.get(f'http://api.aladhan.com/v1/calendar/{datetime.now().year}/{datetime.now().month}', params=params).json()
+            print(params)
+            print(adhan_json['data'])
 
             prayer_times_month = PrayerTimesMonth(adhan_json)
             with open('Resources/PrayerTimesMonth.pkl', 'wb') as f:
@@ -134,7 +134,18 @@ class HomeTab(QWidget):
                                                  f'{self.prayer_names[i]} After {adhan_reminder} Minutes',
                                                  QIcon("Resources/Icon.png"))
 
+                    audio_output = [ad for ad in QMediaDevices.audioOutputs() if
+                                    ad.description() == config.settings['General']['Audio Output']][0]
+                    self.audio_output.setDevice(audio_output)
+
+                    self.player.setSource(f'file:Resources/Alarm.mp3')
+                    self.player.play()
+
             if self.equale_times(current_time, prayer_time):
+
+                if self.player.isPlaying():
+                    return
+
                 adhan_caller = int(config.settings['General']['Adhan Caller'])
 
                 if adhan_caller == 0:
@@ -144,6 +155,10 @@ class HomeTab(QWidget):
                 config.tray_icon.showMessage(f'{self.prayer_names[i]} Is Calling',
                                              adhan_sound,
                                              QIcon("Resources/Icon.png"))
+
+                audio_output = [ad for ad in QMediaDevices.audioOutputs() if
+                                ad.description() == config.settings['General']['Audio Output']][0]
+                self.audio_output.setDevice(audio_output)
 
                 self.player.setSource(f'file:Resources/Adhan Callers/{adhan_sound}.mp3')
                 self.player.play()
@@ -207,6 +222,10 @@ class SettingsTab(QWidget):
         self.body = QVBoxLayout()
 
         # Components
+        self.audio_output_cbb = QComboBox()
+        self.audio_output_cbb.addItems([ad.description() for ad in QMediaDevices.audioOutputs()])
+        self.check_audio_devices()
+        
         self.adhan_caller_cbb = QComboBox()
         self.adhan_caller_cbb.addItems(config.ADHAN_CALLERS)
         self.adhan_caller_cbb.setCurrentIndex(int(config.settings['General']['Adhan Caller']))
@@ -228,6 +247,7 @@ class SettingsTab(QWidget):
         self.always_on_top_cb.setMinimumSize(25, 25)
 
         # Assembly
+        self.preferences_body.addRow('Audio Output', self.audio_output_cbb)
         self.preferences_body.addRow('Adhan Caller', self.adhan_caller_cbb)
         self.preferences_body.addRow('Adhan Reminder (Minutes)', self.adhan_reminder_sb)
 
@@ -244,6 +264,7 @@ class SettingsTab(QWidget):
         self.setLayout(self.body)
 
         # Functionality
+        self.audio_output_cbb.currentIndexChanged.connect(lambda i: config.update_settings('General', 'Audio Output', i))
         self.adhan_caller_cbb.currentIndexChanged.connect(lambda i: config.update_settings('General', 'Adhan Caller', i))
 
         self.method_cbb.currentIndexChanged.connect(lambda i: config.update_settings('General', 'Calculation Method', i))
@@ -257,6 +278,18 @@ class SettingsTab(QWidget):
     @staticmethod
     def check_startup():
         return Path(f'C:/Users/{getpass.getuser()}/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/PyAdhan.lnk').is_file()
+
+    def check_audio_devices(self):
+        audio_devices = [ad.description() for ad in QMediaDevices.audioOutputs()]
+
+        if not audio_devices:
+            return
+
+        if config.settings['General']['Audio Output'] in audio_devices:
+            self.audio_output_cbb.setCurrentText(config.settings['General']['Audio Output'])
+
+        else:
+            config.update_settings('General', 'Audio Output', audio_devices[0])
 
     def switch_startup(self):
         config.update_settings('General', 'Add To Startup', int(self.startup_cb.isChecked()))
@@ -329,4 +362,5 @@ if '__main__' in __name__:
 
     config.window.home_tab.tick()
     config.window.settings_tab.switch_always_on_top()
+
     app.exec()
