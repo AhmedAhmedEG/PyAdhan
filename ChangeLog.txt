@@ -1,0 +1,4 @@
+PyAdhan v2.10.10.7:-
+
+[Bug Fixes]
+-Fixed adhan API endpoint to use https as now it's enforced and not optional as before.

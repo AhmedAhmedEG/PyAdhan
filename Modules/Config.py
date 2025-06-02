@@ -17,7 +17,7 @@ class Config:
             #     sys.stdout = io.StringIO()
 
         # self.APP_VERSION = next(open('./Changelog.txt', 'r', encoding='utf-8')).split(' ')[-1][1:-3]
-        self.APP_VERSION = '2.10.10.6'
+        self.APP_VERSION = '2.10.10.7'
         self.ADHAN_CALLERS = ['Random'] + list(map(lambda a: Path(a).stem, os.listdir('Resources/Adhan Callers')))
         self.CALC_METHODS = ['Auto',
                              'University of Islamic Sciences, Karachi',

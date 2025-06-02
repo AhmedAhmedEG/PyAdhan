@@ -89,17 +89,23 @@ class HomeTab(QWidget):
                 print(e)
                 return
 
-            ip_geo_json = requests.get(f'http://ip-api.com/json/{public_ip.get()}').json()
+            res = requests.get(f'http://ip-api.com/json/{public_ip.get()}')
+            ip_geo_json = res.json()
 
-            params = {'latitude': ip_geo_json['lat'],
-                      'longitude': ip_geo_json['lon']}
+            params = {
+                'latitude': ip_geo_json['lat'],
+                'longitude': ip_geo_json['lon']
+            }
 
             if int(config.settings['General']['Calculation Method']):
                 params['method'] = int(config.settings['General']['Calculation Method'])
 
-            adhan_json = requests.get(f'http://api.aladhan.com/v1/calendar/{datetime.now().year}/{datetime.now().month}', params=params).json()
-            print(params)
-            print(adhan_json['data'])
+            res = requests.get(
+                f'https://api.aladhan.com/v1/calendar/{datetime.now().year}/{datetime.now().month}',
+                params=params
+            )
+
+            adhan_json = res.json()
 
             prayer_times_month = PrayerTimesMonth(adhan_json)
             with open('Resources/PrayerTimesMonth.pkl', 'wb') as f:
