@@ -112,10 +112,11 @@ class ModernTitleBar(QFrame):
         self.minimize_btn.setFlat(True)
         self.minimize_btn.setFont(f)
 
-        self.maximize_btn = QPushButton('❒')
-        self.maximize_btn.setFixedWidth(20)
-        self.maximize_btn.setFlat(True)
-        self.maximize_btn.setFont(f)
+        if maximizable:
+            self.maximize_btn = QPushButton('❒')
+            self.maximize_btn.setFixedWidth(20)
+            self.maximize_btn.setFlat(True)
+            self.maximize_btn.setFont(f)
 
         self.exit_btn = QPushButton('X')
         self.exit_btn.setFixedWidth(20)
@@ -142,7 +143,10 @@ class ModernTitleBar(QFrame):
 
         # Functionality
         self.minimize_btn.clicked.connect(self.minimize)
-        self.maximize_btn.clicked.connect(self.maximize)
+
+        if maximizable:
+            self.maximize_btn.clicked.connect(self.maximize)
+
         self.exit_btn.clicked.connect(self.exit)
 
     def set_title(self, title: str) -> None:

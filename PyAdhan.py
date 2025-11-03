@@ -1,3 +1,5 @@
+from threading import Thread
+
 from PySide6.QtWidgets import (QWidget, QApplication, QVBoxLayout, QFormLayout, QLabel, QComboBox, QGroupBox, QCheckBox,
                                QSpinBox, QTabWidget)
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput, QMediaDevices
@@ -22,7 +24,6 @@ import win32com
 import public_ip
 import requests
 
-
 class HomeTab(QWidget):
 
     def __init__(self):
@@ -31,9 +32,7 @@ class HomeTab(QWidget):
         self.today_prayer_times = None
 
         self.audio_output = QAudioOutput()
-
         self.player = QMediaPlayer()
-        self.player.setAudioOutput(self.audio_output)
 
         # Structure
         self.prayer_times_body = QFormLayout()
@@ -140,12 +139,7 @@ class HomeTab(QWidget):
                                                  f'{self.prayer_names[i]} After {adhan_reminder} Minutes',
                                                  QIcon("Resources/Icon.png"))
 
-                    audio_output = [ad for ad in QMediaDevices.audioOutputs() if
-                                    ad.description() == config.settings['General']['Audio Output']][0]
-                    self.audio_output.setDevice(audio_output)
-
-                    self.player.setSource(f'file:Resources/Alarm.mp3')
-                    self.player.play()
+                    self.run_audio('Resources/Alarm.mp3')
 
             if self.equale_times(current_time, prayer_time):
 
@@ -162,12 +156,7 @@ class HomeTab(QWidget):
                                              adhan_sound,
                                              QIcon("Resources/Icon.png"))
 
-                audio_output = [ad for ad in QMediaDevices.audioOutputs() if
-                                ad.description() == config.settings['General']['Audio Output']][0]
-                self.audio_output.setDevice(audio_output)
-
-                self.player.setSource(f'file:Resources/Adhan Callers/{adhan_sound}.mp3')
-                self.player.play()
+                self.run_audio(f'Resources/Adhan Callers/{adhan_sound}.mp3')
 
             if current_time.time() < prayer_time.time():
                 next_prayer = i
@@ -204,6 +193,21 @@ class HomeTab(QWidget):
     @staticmethod
     def equale_times(dt1, dt2):
         return (dt1.hour, dt1.minute, dt1.second) == (dt2.hour, dt2.minute, dt2.second)
+
+    def run_audio(self, file_path):
+        output_device = [
+            ad
+            for ad in QMediaDevices.audioOutputs()
+            if ad.description() == config.settings["General"]["Audio Output"]
+        ][0]
+
+        self.audio_output = QAudioOutput()
+        self.audio_output.setDevice(output_device)
+
+        self.player.setAudioOutput(self.audio_output)
+        self.player.setSource(f"file:{file_path}")
+
+        Thread(target=self.player.play).start()
 
 
 class SettingsTab(QWidget):

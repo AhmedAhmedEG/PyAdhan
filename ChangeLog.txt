@@ -1,4 +1,6 @@
-PyAdhan v2.10.10.7:-
+PyAdhan v2.11.1.3:-
 
 [Bug Fixes]
--Fixed adhan API endpoint to use https as now it's enforced and not optional as before.
+-Fixed window minimize button sometimes maximizes the window.
+-Fixed a bug where if the selected audio device got disconnect then reconnected, the app will keep using the fallback device.
+-Fixed a bug where while adhan or alarm is playing, the app windows freezes.
