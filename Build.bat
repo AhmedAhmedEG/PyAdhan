@@ -1,1 +1,1 @@
-"C:\Python Projects\Virtual Enviroments\PyAdhan\venv\Scripts\python.exe" Builder.py build
+uv run Builder.py build

@@ -47,26 +47,38 @@ def get_palette():
     return palette
 
 
-class PrayerTimesMonth:
+class PrayerTimesDay:
 
-    def __init__(self, data):
-        self.data = data['data']
-        self.year = datetime.now().year
-        self.month = datetime.now().month
+    def __init__(self, timings_data, date=None):
+        if isinstance(timings_data, dict):
+            if 'timings' in timings_data:
+                raw_timings = timings_data['timings']
+            elif 'data' in timings_data and 'timings' in timings_data['data']:
+                raw_timings = timings_data['data']['timings']
+            else:
+                raw_timings = timings_data
+        else:
+            raw_timings = timings_data
 
-    def get_prayer_times(self, day):
-        prayer_times = self.data[day - 1]['timings']
-        prayer_times = [prayer_times['Fajr'].split(' ')[0],
-                        prayer_times['Dhuhr'].split(' ')[0],
-                        prayer_times['Asr'].split(' ')[0],
-                        prayer_times['Maghrib'].split(' ')[0],
-                        prayer_times['Isha'].split(' ')[0]]
+        self.raw_times = {
+            'Fajr': raw_timings['Fajr'].split(' ')[0],
+            'Dhuhr': raw_timings['Dhuhr'].split(' ')[0],
+            'Asr': raw_timings['Asr'].split(' ')[0],
+            'Maghrib': raw_timings['Maghrib'].split(' ')[0],
+            'Isha': raw_timings['Isha'].split(' ')[0],
+        }
+        self.saved_date = date or datetime.now().date()
 
-        for i, pt in enumerate(prayer_times):
-            dt = datetime.strptime(pt, '%H:%M')
-            dt = dt.replace(year=self.year, month=self.month, day=day)
+    def get_prayer_times(self, target_date=None):
+        if target_date is None:
+            target_date = datetime.now().date()
 
-            prayer_times[i] = dt
+        prayer_times = []
+        for key in ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']:
+            pt_str = self.raw_times[key]
+            t = datetime.strptime(pt_str, '%H:%M').time()
+            dt = datetime.combine(target_date, t)
+            prayer_times.append(dt)
 
         return prayer_times
 
@@ -81,6 +93,8 @@ class ModernTitleBar(QFrame):
         self.setFixedHeight(30)
 
         self.movable = movable
+        self.maximizable = maximizable
+        self.minimizable = minimizable
 
         self.minimize_size = None
         self.window_offset = None
@@ -161,7 +175,13 @@ class ModernTitleBar(QFrame):
         self.icon.show()
 
     def minimize(self):
-        self.parent().showMinimized()
+        parent = self.parent()
+        if parent:
+            if hasattr(parent, 'stretch_direction'):
+                parent.stretch_direction = None
+            if hasattr(parent, 'anchor'):
+                parent.anchor = None
+            parent.showMinimized()
 
     def maximize(self):
 
@@ -179,6 +199,12 @@ class ModernTitleBar(QFrame):
     def exit(self):
         self.closed.emit()
         self.parent().hide()
+
+    def mouseDoubleClickEvent(self, e: QtGui.QMouseEvent) -> None:
+        if self.maximizable:
+            self.maximize()
+        else:
+            e.accept()
 
     def mousePressEvent(self, e: QtGui.QMouseEvent) -> None:
         super().mousePressEvent(e)
@@ -210,7 +236,7 @@ class ModernMainWindow(QFrame):
 
     def __init__(self):
         super().__init__()
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowMinimizeButtonHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setMouseTracking(True)
 
@@ -235,6 +261,13 @@ class ModernMainWindow(QFrame):
         self.body.addWidget(self.main_window, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.setLayout(self.body)
+
+    def changeEvent(self, event: QEvent) -> None:
+        if event.type() == QEvent.Type.WindowStateChange:
+            if hasattr(self, 'window_frame') and not getattr(self.window_frame, 'maximizable', False):
+                if self.isMaximized():
+                    self.showNormal()
+        super().changeEvent(event)
 
     def eventFilter(self, watched: QObject, e: QEvent) -> bool:
 
@@ -349,6 +382,14 @@ class ModernMainWindow(QFrame):
                 self.size_anim.start()
 
     def check_corners(self, pos: QPoint):
+        if hasattr(self, 'window_frame') and pos.y() < self.window_frame.height() and pos.x() > self.width() - 80:
+            if not self.anchor:
+                if self.cursor_changed:
+                    QApplication.restoreOverrideCursor()
+                    self.cursor_changed = False
+                self.stretch_direction = None
+            return
+
         cx = self.width() / 2
         cy = self.height() / 2
 

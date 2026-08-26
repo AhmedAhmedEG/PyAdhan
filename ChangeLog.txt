@@ -1,6 +1,12 @@
-PyAdhan v2.11.1.3:-
+PyAdhan v2.11.2.0:-
+
+[Features]
+-Switched prayer times caching to single-day caching with fresh fetch on every run and offline cache fallback.
 
 [Bug Fixes]
--Fixed window minimize button sometimes maximizes the window.
--Fixed a bug where if the selected audio device got disconnect then reconnected, the app will keep using the fallback device.
--Fixed a bug where while adhan or alarm is playing, the app windows freezes.
+-Fixed audio output handling to dynamically recheck configured devices on each adhan playback and use the system default temporarily if disconnected without overwriting saved settings.
+-Fixed an issue where clicking the minimize button could maximize the window.
+-Fixed midnight day-rollover prayer time updates.
+
+[Minor]
+-Added "Stop Adhan" button that's usable if there's a running adhan.

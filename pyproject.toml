@@ -1,0 +1,21 @@
+[project]
+name = "pyadhan"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "AhmedAhmedEG", email = "ahmed.ahmed.a.m.aa12@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "cx-freeze>=8.7.0",
+    "pyside6>=6.11.2",
+    "pywin32>=312",
+    "requests>=2.34.2",
+]
+
+[project.scripts]
+pyadhan = "pyadhan:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"

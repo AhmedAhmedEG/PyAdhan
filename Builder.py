@@ -16,7 +16,7 @@ file_excludes = [
 
 module_excludes = [
     'tkinter', 'PySide6.qml', 'PySide6.translations.qtwebengine_locales',
-    'PySide6.QtWebEngineCore', 'PySide6.QtNetwork', 'PySide6.QtNfc',
+    'PySide6.QtWebEngineCore', 'PySide6.QtNfc',
     'PySide6.QtWebChannel', 'PySide6.QtWebEngine', 'PySide6.QtSql',
     'PySide6.QtBluetooth', 'PySide6.QtWebEngineWidgets', 'PySide6.QtWebKit',
     'PySide6.QtScript', 'PySide6.QtWebKitWidgets', 'PySide6.QtWebSockets'
@@ -39,7 +39,7 @@ setup(
         }
     },
     executables=[
-        Executable(script='PyAdhan.py', icon='Resources/Icon.ico', base='Win32GUI')
+        Executable(script='PyAdhan.py', icon='Resources/Icon.ico', base='gui')
     ]
 )
 
